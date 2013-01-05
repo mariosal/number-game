@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Number Game</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body>
+    <div>
+      <table>
+        <tr></tr>
+      </table>
+
+      <ul>
+        <li class="blue_li">You: <span id="you">0</span></li>
+        <li class="red_li">Bot: <span id="bot">0</span></li>
+      </ul>
+
+      <p id="win" class="hide">Congrats, you won!</p>
+      <p id="draw" class="hide">It's a draw.</p>
+      <p id="lose" class="hide">Sorry, you lost...</p>
+    </div>
+
+    <footer>
+      <h2>Rules</h2>
+      <ol>
+        <li>Every player has initially 0 points.</li>
+        <li>In each turn a player adds to his sum either the leftmost or the
+        rightmost element of the array.</li>
+        <li>The player with the greatest sum wins.</li>
+      </ol>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

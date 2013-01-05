@@ -1,0 +1,51 @@
+.show {
+  display: block;
+}
+.hide {
+  display: none;
+}
+
+.blue {
+  background: rgb(207, 226, 243);
+}
+.red {
+  background: rgb(244, 204, 204);
+}
+.blue_li {
+  list-style: url(blue.jpg);
+}
+.red_li {
+  list-style: url(red.jpg);
+}
+
+body {
+  font-family: "Trebuchet MS";
+}
+  div {
+    margin: 2% auto 0;
+    width: 800px;
+  }
+    table {
+      margin: 0 auto;
+    }
+      td {
+        cursor: pointer;
+        height: 40px;
+        text-align: center;
+        width: 64px;
+      }
+    ul {
+      margin-top: 5%;
+    }
+    p {
+      font-size: 18pt;
+      font-weight: bold;
+      margin: 10% auto 0;
+      text-align: center;
+      width: 250px;
+    }
+  footer {
+    bottom: 0;
+    position: fixed;
+    right: 0;
+  }
