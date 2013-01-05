@@ -1,123 +1,173 @@
-var minimax = {
-  alpha: 0,
-  beta: 1,
-  a: null,
-  n: 0,
-  w: null,
-  init: function() {
-    this.a = new Array(this.n);
-    for (var i = 0; i < this.n; ++i) {
-      this.a[i] = Math.floor(Math.random()*10 + 1);
-    }
+/*
+ * Throws exception if condition == false
+ *
+ * @param {bool} condition The boolean value to be checked
+ * @param {String} description The statement of the exception
+ */
+var assert = function(condition, description) {
+  if (!condition) {
+    throw 'Assertion failed: ' + description;
+  }
+};
 
-    this.w = new Array(this.n);
-    for (var i = 0; i < this.n; ++i) {
-      this.w[i] = new Array(this.n);
-    }
+/**
+ * Computes the tree
+ *
+ * @param {int*} array Contains the numbers of the game
+ * @param {int} bot 1 if bot plays first, else 0
+ * @returns {int**} The weight tree
+ */
+var minimax = function(array, bot) {
+  assert(typeof array != 'undefined', 'minimax: Undefined array');
+  assert(typeof bot != 'undefined', 'minimax: Undefined first player');
 
-    for (var i = this.n - 1; i >= 0; --i) {
-      this.w[i][i] = this.n % 2 != this.alpha ? this.a[i] : 0;
-      for (var j = i + 1; j < this.n; ++j) {
-        if ((this.n % 2 == 0 && (i + j + 1) % 2 == this.alpha) ||
-            (this.n % 2 == 1 && (i + j + 1) % 2 != this.alpha)){
-          this.w[i][j] = Math.max(this.a[i] + this.w[i + 1][j],
-                                  this.a[j] + this.w[i][j - 1]);
-        }
-        else {
-          this.w[i][j] = Math.min(this.w[i + 1][j],
-                                  this.w[i][j - 1]);
-        }
-      }
+  var w = new Array(array.length);
+  var sum = new Array(array.length + 1); // Partial sums of array. 1-indexed
+
+  sum[0] = 0;
+  for (var i = 0; i < array.length; ++i) {
+    sum[i + 1] = sum[i] + array[i];
+
+    w[i] = new Array(array.length);
+    for (var j = 0; j < array.length; ++j) {
+      w[i][j] = 0;
+    }
+    w[i][i] = array.length % 2 == bot ? array[i] : 0;
+  }
+
+  // Computing the tree
+  for (var i = array.length - 1; i >= 0; --i) {
+    for (var j = i + 1; j < array.length; ++j) {
+      // Note here that the cases of minimising and maximising the weight are
+      // symmetrical so there is no need to compute them separately
+      w[i][j] = Math.max(sum[j + 1] - sum[i + 1] - w[i + 1][j] + array[i],
+                         sum[j] - sum[i] - w[i][j - 1] + array[j]);
     }
   }
+
+  return w;
 };
 
 var behavior = {
-  els: null,
-  left: 0,
-  right: 0,
-  player: 0,
+  element: null,
   score: [0, 0],
   scoreBoard: null,
-  choose: function(id) {
-    this.els[id].className = this.getClassName();
-    this.score[this.player] += parseInt(this.els[id].innerHTML);
-    this.scoreBoard[this.player].innerHTML = this.score[this.player];
+  w: null,
 
-    this.left += id == this.left ? 1 : 0;
-    this.right -= id == this.right ? 1 : 0;
+  /*
+   * Passes the move to this.select()
+   * @param {int} bot 1 if bot plays, else 0
+   * @param {int} move The id of the element
+   */
+  play: function(bot, move) {
+    if (this.left > this.right) {
+      return;
+    }
+
+    if (bot) {
+      l = parseInt(this.element[this.left].innerHTML);
+      r = parseInt(this.element[this.right].innerHTML);
+      if (this.left == this.right) { // Avoid overflow
+        this.select(1, this.left);
+      }
+      else if (l + this.w[this.left + 1][this.right] >=
+            r + this.w[this.left][this.right - 1]) {
+          this.select(1, this.left);
+      }
+      else {
+        this.select(bot, this.right);
+      }
+    }
+    else {
+      assert(typeof move != 'undefined',
+             'behavior.select: Undefined move for human');
+      if (move != this.left && move != this.right) {
+        return;
+      }
+
+      this.select(bot, move);
+      this.play(1);
+    }
+  },
+
+  /*
+   * Makes a move on the page
+   *
+   * @param {int} bot 1 if bot plays, else 0
+   * @param {int} move The id of the element
+   */
+  select: function(bot, move) {
+    this.element[move].className = bot ? 'red' : 'blue';
+    this.score[bot] += parseInt(this.element[move].innerHTML);
+    this.scoreBoard[bot].innerHTML = this.score[bot];
+
+    this.left += this.left == move ? 1 : 0;
+    this.right -= this.right == move ? 1 : 0;
 
     if (this.left > this.right) {
       if (this.score[0] > this.score[1]) {
-        document.getElementById('win').className = 'show';
+        this.onwin();
       }
       else if (this.score[0] == this.score[1]) {
-        document.getElementById('draw').className = 'show';
+        this.ondraw();
       }
       else {
-        document.getElementById('lose').className = 'show';
+        this.onlose();
       }
     }
   },
-  you: function(id) {
-    if (id != this.left && id != this.right || this.left > this.right) {
-      return;
-    }
 
-    this.player = 0;
-    this.choose(id);
-    this.bot();
+  onwin: function() {
   },
-  bot: function() {
-    if (this.left > this.right) {
-      return;
-    }
-
-    this.player = 1;
-    l = parseInt(this.els[this.left].innerHTML);
-    r = parseInt(this.els[this.right].innerHTML);
-    if (this.left == this.right) {
-      this.choose(this.left);
-    }
-    else {
-      if (l + minimax.w[this.left + 1][this.right] >=
-          r + minimax.w[this.left][this.right - 1]) {
-        this.choose(this.left);
-      }
-      else {
-        this.choose(this.right);
-      }
-    }
+  ondraw: function() {
   },
-  getClassName: function() {
-    return this.player ? 'red' : 'blue';
+  onlose: function() {
   }
 };
 
-minimax.n = 10;
-minimax.alpha = 0; // Alpha is bot
-minimax.beta = 1; // Beta is you
-minimax.init();
+// Select who plays first
+var bot = Math.floor(Math.random()*1000) % 2;
 
-for (var i = 0; i < minimax.n; ++i) {
+// Generating the numbers
+var N = 10;
+var array = new Array(N);
+for (var i = 0; i < array.length; ++i) {
+  array[i] = Math.floor(Math.random()*100 + 1); // [1..100]
+}
+
+// Creating the HTML tags
+for (var i = 0; i < array.length; ++i) {
   var td = document.createElement('td');
   td.setAttribute('id', i);
-  td.innerHTML = minimax.a[i];
+  td.innerHTML = array[i];
   document.getElementsByTagName('tr')[0].appendChild(td);
 }
 
-behavior.right = minimax.n - 1;
-var els = document.getElementsByTagName('td');
-for (el in els) {
-  els[el].onclick = function() {
-    behavior.you(this.getAttribute('id'));
-  }
-}
-behavior.els = els;
-behavior.scoreBoard = [document.getElementById('you'),
+// Configuring behavior
+behavior.element = document.getElementsByTagName('td');
+behavior.left = 0;
+behavior.right = array.length - 1;
+behavior.scoreBoard = [document.getElementById('human'),
                        document.getElementById('bot')];
+behavior.w = minimax(array, bot);
 
-if (!minimax.alpha) {
-  behavior.player = 1;
-  behavior.bot()
+// Defining the events
+for (i in behavior.element) {
+  behavior.element[i].onclick = function() {
+    behavior.play(0, this.getAttribute('id'));
+  };
+}
+behavior.onwin = function() {
+  document.getElementById('win').className = 'show';
+};
+behavior.ondraw = function() {
+  document.getElementById('draw').className = 'show';
+};
+behavior.onlose = function() {
+  document.getElementById('lose').className = 'show';
+};
+
+// Make a move if bot plays first
+if (bot) {
+  behavior.play(bot);
 }
