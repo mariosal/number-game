@@ -29,9 +29,6 @@ var minimax = function(array, bot) {
     sum[i + 1] = sum[i] + array[i];
 
     w[i] = new Array(array.length);
-    for (var j = 0; j < array.length; ++j) {
-      w[i][j] = 0;
-    }
     w[i][i] = array.length % 2 == bot ? array[i] : 0;
   }
 
