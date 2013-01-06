@@ -15,7 +15,7 @@ var assert = function(condition, description) {
  *
  * @param {int*} array Contains the numbers of the game
  * @param {int} bot 1 if bot plays first, else 0
- * @returns {int**} The weight tree
+ * @returns {[int*, int**]} The partial sums and the weight tree
  */
 var minimax = function(array, bot) {
   assert(typeof array != 'undefined', 'minimax: Undefined array');
@@ -27,9 +27,8 @@ var minimax = function(array, bot) {
   sum[0] = 0;
   for (var i = 0; i < array.length; ++i) {
     sum[i + 1] = sum[i] + array[i];
-
     w[i] = new Array(array.length);
-    w[i][i] = array.length % 2 == bot ? array[i] : 0;
+    w[i][i] = array.length % 2 != bot ? array[i] : 0;
   }
 
   // Computing the tree
@@ -42,13 +41,14 @@ var minimax = function(array, bot) {
     }
   }
 
-  return w;
+  return [sum, w];
 };
 
 var behavior = {
   element: null,
   score: [0, 0],
   scoreBoard: null,
+  sum: null,
   w: null,
 
   /*
@@ -62,14 +62,18 @@ var behavior = {
     }
 
     if (bot) {
-      l = parseInt(this.element[this.left].innerHTML);
-      r = parseInt(this.element[this.right].innerHTML);
+      var l = parseInt(this.element[this.left].innerHTML);
+      var r = parseInt(this.element[this.right].innerHTML);
+      var lSum = l + this.sum[this.right + 1] - this.sum[this.left + 1] -
+                 this.w[this.left + 1][this.right];
+      var rSum = r + this.sum[this.right] - this.sum[this.left] -
+                 this.w[this.left][this.right - 1];
+
       if (this.left == this.right) { // Avoid overflow
         this.select(1, this.left);
       }
-      else if (l + this.w[this.left + 1][this.right] >=
-            r + this.w[this.left][this.right - 1]) {
-          this.select(1, this.left);
+      else if (lSum >= rSum) {
+        this.select(1, this.left);
       }
       else {
         this.select(bot, this.right);
@@ -82,7 +86,7 @@ var behavior = {
         return;
       }
 
-      this.select(bot, move);
+      this.select(0, move);
       this.play(1);
     }
   },
@@ -123,10 +127,11 @@ var behavior = {
 };
 
 // Select who plays first
-var bot = Math.floor(Math.random()*1000) % 2;
+//var bot = Math.floor(Math.random()*1000) % 2;
+var bot = 1;
 
 // Generating the numbers
-var N = 10;
+var N = 12;
 var array = new Array(N);
 for (var i = 0; i < array.length; ++i) {
   array[i] = Math.floor(Math.random()*100 + 1); // [1..100]
@@ -146,7 +151,9 @@ behavior.left = 0;
 behavior.right = array.length - 1;
 behavior.scoreBoard = [document.getElementById('human'),
                        document.getElementById('bot')];
-behavior.w = minimax(array, bot);
+var ret = minimax(array, bot);
+behavior.sum = ret[0];
+behavior.w = ret[1];
 
 // Defining the events
 for (i in behavior.element) {
@@ -166,5 +173,5 @@ behavior.onlose = function() {
 
 // Make a move if bot plays first
 if (bot) {
-  behavior.play(bot);
+  behavior.play(1);
 }
