@@ -1,4 +1,4 @@
-/*
+/**
  * Throws exception if condition == false
  *
  * @param {bool} condition The boolean value to be checked
@@ -51,7 +51,7 @@ var behavior = {
   sum: null,
   w: null,
 
-  /*
+  /**
    * Passes the move to this.select()
    * @param {int} bot 1 if bot plays, else 0
    * @param {int} move The id of the element
@@ -64,16 +64,15 @@ var behavior = {
     if (bot) {
       var l = parseInt(this.element[this.left].innerHTML);
       var r = parseInt(this.element[this.right].innerHTML);
-      var lSum = l + this.sum[this.right + 1] - this.sum[this.left + 1] -
-                 this.w[this.left + 1][this.right];
-      var rSum = r + this.sum[this.right] - this.sum[this.left] -
-                 this.w[this.left][this.right - 1];
 
       if (this.left == this.right) { // Avoid overflow
-        this.select(1, this.left);
+        this.select(bot, this.left);
       }
-      else if (lSum >= rSum) {
-        this.select(1, this.left);
+      else if (l + this.sum[this.right + 1] - this.sum[this.left + 1] -
+               this.w[this.left + 1][this.right] >=
+               r + this.sum[this.right] - this.sum[this.left] -
+               this.w[this.left][this.right - 1]) {
+        this.select(bot, this.left);
       }
       else {
         this.select(bot, this.right);
@@ -86,12 +85,12 @@ var behavior = {
         return;
       }
 
-      this.select(0, move);
+      this.select(bot, move);
       this.play(1);
     }
   },
 
-  /*
+  /**
    * Makes a move on the page
    *
    * @param {int} bot 1 if bot plays, else 0
@@ -127,14 +126,13 @@ var behavior = {
 };
 
 // Select who plays first
-//var bot = Math.floor(Math.random()*1000) % 2;
-var bot = 1;
+var bot = Math.floor(Math.random()*1000) % 2;
 
 // Generating the numbers
-var N = 12;
+var N = 10;
 var array = new Array(N);
 for (var i = 0; i < array.length; ++i) {
-  array[i] = Math.floor(Math.random()*100 + 1); // [1..100]
+  array[i] = Math.floor(Math.random()*100) % 16 + 1; // [1..100]
 }
 
 // Creating the HTML tags
