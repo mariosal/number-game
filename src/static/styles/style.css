@@ -12,10 +12,10 @@
   background: rgb(244, 204, 204);
 }
 .blue_li {
-  list-style: url(blue.jpg);
+  list-style: url(../images/blue.jpg);
 }
 .red_li {
-  list-style: url(red.jpg);
+  list-style: url(../images/red.jpg);
 }
 
 body {
